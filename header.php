@@ -21,6 +21,9 @@
             assets: '<?php echo get_template_directory_uri(); ?>',
             tests: {}
         });
+
+			var preLoadImage = new Image();
+			preLoadImage.src = "<?php echo get_template_directory_uri(); ?>/img/miracosta_color_white_txt.png";
         </script>
 
 	</head>
