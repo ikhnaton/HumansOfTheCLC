@@ -515,4 +515,80 @@ function get_clc_nav_pages () {
 	return get_pages($args);
 }
 
+function get_clc_stories_page () {
+		$args = array(
+		'sort_order' => 'asc',
+		'sort_column' => 'menu_order',
+		'hierarchical' => 1,
+		'exclude' => '',
+		'include' => '',
+		'meta_key' => '',
+		'meta_value' => '',
+		'authors' => '',
+		'child_of' => 0,
+		'parent' => get_page_by_title('Stories', OBJECT, 'page')->ID,
+		'exclude_tree' => '',
+		'number' => '',
+		'offset' => 0,
+		'post_type' => 'page',
+		'post_status' => 'publish'
+	);
+
+	return get_pages($args);
+}
+
+add_action( 'add_meta_boxes', 'cd_meta_box_add' );
+function cd_meta_box_add()
+{
+    add_meta_box( 'category_key', 'Category Key', 'cd_meta_box_cb', 'page', 'side', 'high' );
+}
+
+function cd_meta_box_cb($key)
+{
+	$values = get_post_custom( $post->ID );
+	$text = isset( $values['clc_category_key'] ) ? esc_attr( $values['clc_category_key'][0] ) : "";
+?>
+	<p>Enter the slug for the post category to associate with this page. </p>
+
+    <label for="my_meta_box_text">Slug</label>
+    <input type="text" name="clc_category_key" id="clc_category_key" value="<?php echo $text; ?>"/>
+    <?php
+}
+
+add_action( 'save_post', 'cd_meta_box_save' );
+function cd_meta_box_save( $post_id )
+{
+    // Bail if we're doing an auto save
+    if( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+
+    // if our current user can't edit this post, bail
+    if( !current_user_can( 'edit_page' ) ) return;
+
+	$allowed = array(
+    );
+
+    // Make sure your data is set before trying to save it
+    if( isset( $_POST['clc_category_key'] ) )
+        update_post_meta( $post_id, 'clc_category_key', wp_kses( $_POST['clc_category_key'], $allowed ) );
+}
+
+function add_query_vars_filter( $vars ){
+  $vars[] = "slug";
+  return $vars;
+}
+add_filter( 'query_vars', 'add_query_vars_filter' );
+
+function randomize_array($myArray, $randomizer)
+{
+	for ($i = 1; $i <= $randomizer; $i++) {
+    	$temp1 = rand(0, count($myArray)-1);
+		$temp2 = rand(0, count($myArray)-1);
+
+		$temp = $myArray[$temp1];
+		$myArray[$temp1] = $myArray[$temp2];
+		$myArray[$temp2] = $temp;
+	}
+
+	return $myArray;
+}
 ?>

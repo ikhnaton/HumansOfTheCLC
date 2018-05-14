@@ -1,45 +1,147 @@
-<?php /* Template Name: Demo Page Template */ get_header(); ?>
+<?php get_header(); ?>
+<?php
+	$clcPages = get_clc_nav_pages();
 
-	<main role="main">
+function noPostsExist($txt)
+{
+?>
+	<section class="clc-story">
+		<h2>
+			Check back soon, we are currently working on stories for this topic.
+		</h2>
+	</section>
+<?php
+}
+?>
+
+<main role="main" class="clc-main-style"><div>
 		<!-- section -->
 		<section>
+			<nav class="clc-main-nav">
+				<header>
+					Humans of the CLC
+				</header>
+				<ul>
+					<li><a href="<?php echo get_home_url(); ?>">Home</a></li>
+					<?php
+					  foreach ($clcPages as $clcPage)
+					  {
+					?>
+					<li  <?php if (get_the_ID() == $clcPage->ID) echo "class='active'"; ?> ><a href="<?php echo get_permalink($clcPage->ID); ?>"><?php echo $clcPage->post_title; ?></a></li>
+					<?php
+			  		  }
+					?>
+				</ul>
+			</nav>
+	</section>
+<?php
+// 	$categoryId = get_cat_ID(get_query_var("slug"));
 
-			<h1><?php the_title(); ?></h1>
+// 	if ($categoryId === 0)
+// 	{
+// 		noPostsExist(get_query_var("slug"));
+// 	}
+// 	else
+// 	{
+// 		$query = array(
+// 			'numberposts' => -1,
+// 			'category' => $categoryId,
+// 			'orderby' => 'date',
+// 			'order' => 'DESC',
+// 			'post_type' => 'post',
+// 			'suppress_filters' => true
+// 		);
 
-		<?php if (have_posts()): while (have_posts()) : the_post(); ?>
+// 		$story_posts = get_posts( $query );
+// 		$story_posts = randomize_array($story_posts, 1000);
 
-			<!-- article -->
-			<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+// 		if (count($story_posts) > 0)
+// 		{
+?>
+	<section class="clc-story">
 
-				<?php the_content(); ?>
+		<?php
+			global $post;
+		 	setup_postdata($post);
+			$content = get_the_content();
+			$current_post_id = $post->ID;
 
-				<?php comments_template( '', true ); // Remove if you don't want comments ?>
+			$greeting = strpos($content, "<greeting/>");
+			if ($greeting !== false)
+			{
+				$names = explode(" ", $post->post_title);
+				$content = substr_replace($content, "<h2 class=\"clc-story-greeting\">Meet " . $names[0] . "</h2>", $greeting, 11);
+			}
+		 ?>
+			<div class="clc-story-main-content">
+				<?php echo $content;?>
+			</div>
+			<div class="clc-story-bottom-content">
+		<?php
+			$cats = get_the_category();
+			$stories = array();
+			foreach($cats as $c)
+			{
+   				$cat = get_category( $c );
+				if ($cat->name != "story")
+				{
+					$categoryId = get_cat_ID($cat->name);
+					$query = array(
+						'numberposts' => -1,
+						'category' => $categoryId,
+						'orderby' => 'date',
+						'order' => 'DESC',
+						'post_type' => 'post',
+						'suppress_filters' => true
+					);
+					$stories = array_merge($stories, get_posts( $query ));
+				}
+			}
+			$stories = randomize_array($stories, 1000);
+			foreach ($stories as $story)
+			{
+				if ($story->ID != $current_post_id)
+				{
+					setup_postdata($story);
+					$content = get_the_content();
 
-				<br class="clear">
+					//remove <a>
+					$keepLooping = true;
+					while ($keepLooping)
+					{
+						$tagLocStart = strpos($content, "<a ");
+						if ($tagLocStart === false)
+						{
+							$keepLooping = false;
+						}
+						else
+						{
+							$tagLocEnd = strpos($content, ">", $tagLocStart) + 1;
 
-				<?php edit_post_link(); ?>
+							$content = substr_replace($content,"",$tagLocStart, $tagLocEnd - $tagLocStart);
 
-			</article>
-			<!-- /article -->
+							$tagLocStart = strpos($content, "</a>");
+							$content = substr_replace($content,"",$tagLocStart, 4);
+						}
+					}
 
-		<?php endwhile; ?>
-
-		<?php else: ?>
-
-			<!-- article -->
-			<article>
-
-				<h2><?php _e( 'Sorry, nothing to display.', 'html5blank' ); ?></h2>
-
-			</article>
-			<!-- /article -->
-
-		<?php endif; ?>
-
-		</section>
-		<!-- /section -->
-	</main>
-
-<?php get_sidebar(); ?>
-
-<?php get_footer(); ?>
+					$div_click = "onclick=\"viewStory('" . get_permalink($story) . "')\"";
+		?>
+				<div class="clc-story-bottom-stories" <?php echo $div_click; ?>>
+					<?php echo $content;?><br/>
+				</div>
+		<?php
+				}
+			}
+		?>
+			</div>
+	</section>
+<?php
+// 		}
+// 		else
+// 		{
+// 			noPostsExist(get_query_var("slug"));
+// 		}
+// 	}
+?>
+		</div></main>

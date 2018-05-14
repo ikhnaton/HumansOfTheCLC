@@ -9,3 +9,13 @@
 	});
 
 })(jQuery, this);
+
+function viewStory(target)
+{
+	window.location.href = target;
+}
+
+function hoverLogo(element, img)
+{
+	element.src = img;
+}
